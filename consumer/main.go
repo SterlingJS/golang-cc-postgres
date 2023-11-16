@@ -44,26 +44,31 @@ func main() {
 
 	processedMessages := 0
 
-	message, err := dequeueMessage(ctx, db)
+	// This will only process a single message
+	for processedMessages < desiredMessageCount {
+		message, err := dequeueMessage(ctx, db)
 
-	if err != nil {
-		if err != sql.ErrNoRows {
-			log.Println("Error dequeuing message:", err)
-			os.Exit(1)
-		} 
+		if err != nil {
+			if err != sql.ErrNoRows {
+				log.Println("Error dequeuing message:", err)
+				os.Exit(1)
+			} else {
+				log.Println("No more messages to process, exiting...")
+				return
+			}
 
-	} else {
-		log.Println("Processing message:", message)
-		processedMessages++
-		// Simulate message processing
-		if processMessageErr := processMessage(message); processMessageErr != nil {
-			log.Println("Error processing message:", processMessageErr)
 		} else {
-			log.Println("Message processed successfully")
+			log.Println("Processing message:", message)
+			processedMessages++
+			// Simulate message processing
+			if processMessageErr := processMessage(message); processMessageErr != nil {
+				log.Println("Error processing message:", processMessageErr)
+			} else {
+				log.Println("Message processed successfully")
+			}
 		}
 	}
-	message, err = dequeueMessage(ctx, db)
-
+	
 	log.Println("Consumer finished")
 }
 

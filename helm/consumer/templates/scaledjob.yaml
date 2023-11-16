@@ -1,0 +1,61 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: {{ .Release.Name }}-scaledjob
+spec:
+  jobTargetRef:
+    parallelism: 10
+    completions: 1
+    activeDeadlineSeconds: 60
+    backoffLimit: 6
+    template:
+      spec:
+        restartPolicy: Never
+        containers:
+          - name: {{ .Chart.Name }}
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            ports:
+              - containerPort: 8080
+            env:
+              - name: DB_CONN_STRING
+                value: "{{ .Values.postgres.connString }}"
+              - name: QUEUE_TABLE
+                value: "{{ .Values.postgres.queueTable }}"
+              # - name: POSTGRES_USER
+              #   value: "{{ .Values.postgres.user }}"
+              # - name: POSTGRES_PASSWORD
+              #   value: "{{ .Values.postgres.password }}"
+              # - name: POSTGRES_DB
+              #   value: "{{ .Values.postgres.db }}"
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 3
+              periodSeconds: 3
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 3
+              periodSeconds: 3
+  pollingInterval: 1   # Optional. Default: 30 seconds
+  maxReplicaCount: 50  # Optional. Default: 100
+  successfulJobsHistoryLimit: 1   # Optional. Default: 100. How many completed jobs should be kept.
+  failedJobsHistoryLimit: 2       # Optional. Default: 100. How many failed jobs should be kept.
+  scalingStrategy:
+    strategy: "default"
+  triggers:
+    - type: postgresql
+      metadata:
+        host: {{ .Values.postgres.host }}
+        dbName: {{ .Values.postgres.db }}
+        userName: {{ .Values.postgres.username }}
+        port: "{{ .Values.postgres.port }}"
+        query: "SELECT COUNT(*) FROM {{ .Values.postgres.queueTable }}"
+        targetQueryValue: "3"
+        activationTargetQueryValue: "0"
+        sslmode: disable
+      authenticationRef:
+        name: postgres-trigger-authentication

@@ -55,7 +55,7 @@ ingress:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
   hosts:
-    - host: (your hostt)
+    - host: keda-producer.fmz-c-x-app-aks-01.corp.fmglobal.com
       paths:
         - path: /
           pathType: Prefix

@@ -27,7 +27,7 @@ function EnqueueRandomMessages($url, $count) {
     }
 }
 
-$Url = "(your ingress or localhost:port if port forwarding)/enqueue"
-$Count = 100
+$Url = "https://keda-producer.fmz-c-x-app-aks-01.corp.fmglobal.com/enqueue"
+$Count = 1000
 
 EnqueueRandomMessages $Url $Count
