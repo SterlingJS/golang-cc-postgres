@@ -8,7 +8,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-
+	"math/rand"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -27,10 +28,22 @@ type RequestBody struct {
 	Message string `json:"message"`
 }
 
+var (
+	maxAgents = 10
+)
+
 func enqueueMessageHandler(w http.ResponseWriter, r *http.Request) {
 	
 	dbConnString := os.Getenv("DB_CONN_STRING")
 	queueTable := os.Getenv("QUEUE_TABLE")
+
+	// An example of the connection string we expect
+	//  postgresql://consumer:pass@keda-postgres.keda-demo.svc.cluster.local:80/queue?sslmode=disable
+	parts := strings.Split(dbConnString, ":")
+	workerId := rand.Intn(maxAgents) + 1
+
+	// Insert a worker id to better parallelize production. SQL only allows sequential logins by the same user
+	dbConnString = fmt.Sprintf("%s:%s%d:%s:%s", parts[0], parts[1], workerId, parts[2], parts[3])
 
 	db, err := sql.Open("postgres", dbConnString)
 	log.Println("DB Connection string: ", dbConnString)
@@ -59,6 +72,10 @@ func enqueueMessageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	message := requestBody.Message
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
 
 	_, err = db.ExecContext(r.Context(), fmt.Sprintf("INSERT INTO %s (message) VALUES ($1)", queueTable), message)
 	if err != nil {

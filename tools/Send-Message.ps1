@@ -28,6 +28,10 @@ function EnqueueRandomMessages($url, $count) {
 }
 
 $Url = "https://keda-producer.fmz-c-x-app-aks-01.corp.fmglobal.com/enqueue"
-$Count = 1000
+$Count = 100
 
 EnqueueRandomMessages $Url $Count
+
+
+
+Invoke-RestMethod -Uri $url -Method POST -Body $body -ContentType "application/json"

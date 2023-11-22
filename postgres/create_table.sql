@@ -4,8 +4,18 @@ CREATE TABLE message_queue (
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE ROLE consumer WITH LOGIN SUPERUSER PASSWORD 'pass';
-
 CREATE ROLE keda WITH LOGIN SUPERUSER PASSWORD 'pass';
 
-CREATE ROLE producer WITH LOGIN SUPERUSER PASSWORD 'pass';
+DO $$
+BEGIN
+    FOR i IN 1..10 LOOP
+        EXECUTE 'CREATE ROLE producer' ||i|| ' WITH LOGIN SUPERUSER PASSWORD ''pass''';
+    END LOOP;
+END $$;
+
+DO $$
+BEGIN
+    FOR i IN 1..100 LOOP
+        EXECUTE 'CREATE ROLE consumer' ||i|| ' WITH LOGIN SUPERUSER PASSWORD ''pass''';
+    END LOOP;
+END $$;

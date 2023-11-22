@@ -1,5 +1,5 @@
 {{- if .Values.autoscaling.enabled }}
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "consumer.fullname" . }}
@@ -17,12 +17,75 @@ spec:
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
     {{- end }}
     {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
-        targetAverageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+        target:
+          type: Utilization 
+          averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
     {{- end }}
 {{- end }}
+
+
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: ingress-nginx-controller
+#   namespace: ingress-nginx
+#   uid: 1035f13a-7afa-4482-a112-3ca62b934d3c
+#   resourceVersion: '422727735'
+#   creationTimestamp: '2022-04-06T13:01:00Z'
+#   labels:
+#     app.kubernetes.io/component: controller
+#     app.kubernetes.io/instance: ingress-nginx
+#     app.kubernetes.io/managed-by: Helm
+#     app.kubernetes.io/name: ingress-nginx
+#     app.kubernetes.io/part-of: ingress-nginx
+#     app.kubernetes.io/version: 1.9.0
+#     helm.sh/chart: ingress-nginx-4.8.4
+#     helm.toolkit.fluxcd.io/name: ingress-nginx-release
+#     helm.toolkit.fluxcd.io/namespace: flux-system
+#   annotations:
+#     meta.helm.sh/release-name: ingress-nginx
+#     meta.helm.sh/release-namespace: ingress-nginx
+
+# spec:
+#   scaleTargetRef:
+#     kind: Deployment
+#     name: ingress-nginx-controller
+#     apiVersion: apps/v1
+#   minReplicas: 3
+#   maxReplicas: 11
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: memory
+#         target:
+#           type: Utilization
+#           averageUtilization: 50
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: 50
+#   behavior:
+#     scaleUp:
+#       stabilizationWindowSeconds: 300
+#       selectPolicy: Max
+#       policies:
+#         - type: Pods
+#           value: 2
+#           periodSeconds: 60
+#     scaleDown:
+#       stabilizationWindowSeconds: 300
+#       selectPolicy: Max
+#       policies:
+#         - type: Pods
+#           value: 1
+#           periodSeconds: 180

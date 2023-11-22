@@ -5,9 +5,9 @@
 replicaCount: 1
 
 # Postgres Database Specifics
-postgresDb:
-  connString: postgresql://producer:pass@keda-postgres.keda-demo.svc.cluster.local:80/queue?sslmode=disable
-  queueTable: message_queue
+producerBackend: 
+  service: https://keda-producer.fmz-c-x-app-aks-01.corp.fmglobal.com/enqueue
+
 
 image:
   repository: (your repo and image)
@@ -46,7 +46,7 @@ securityContext:
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 3000
 
 ingress:
   enabled: true
@@ -54,7 +54,7 @@ ingress:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
   hosts:
-    - host: keda-producer.fmz-c-x-app-aks-01.corp.fmglobal.com
+    - host: keda-producer-spa.fmz-c-x-app-aks-01.corp.fmglobal.com
       paths:
         - path: /
           pathType: Prefix
@@ -63,15 +63,15 @@ ingress:
 resources:
   limits:
     cpu: 100m
-    memory: 128Mi
+    memory: 2G
   requests:
     cpu: 100m
-    memory: 128Mi
+    memory: 1G
 
 autoscaling:
   enabled: true
-  minReplicas: 3
-  maxReplicas: 10
+  minReplicas: 1
+  maxReplicas: 3
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
 
